@@ -48,7 +48,13 @@ Needs a Linux VM with a public IP, Docker with the compose plugin, and a DNS nam
    - Edit `headscale-backup.cron`: set `OFFSITE=<remote:path>` and `ALERT_URL=<ntfy topic or webhook>`.
    - `sudo cp headscale-backup.cron /etc/cron.d/headscale-backup`
    - Run `./backup.sh` once by hand and confirm the archive and the offsite copy exist. Confirm alerts arrive: `curl -fsS -d test "$ALERT_URL"`.
-   - Add an external uptime monitor on `https://<domain>/health`. If the VM dies, its own cron cannot alert.
+   - Add an external uptime monitor. If the VM dies, its own cron cannot alert. Use a hosted service (e.g. UptimeRobot, Better Stack) with:
+     - Type: keyword HTTP(s); URL `https://<domain>/health`; keyword `pass` (alert when it does not exist). `/health` returns `{"status":"pass"}`.
+     - Interval 5 min, timeout 30 s, alert after 2 consecutive failures.
+     - Alert contacts: email or app push; a webhook can post plain text to the same ntfy topic as `ALERT_URL` if the plan allows it.
+     - Turn on certificate-expiry alerts if offered: this catches a failed automatic renewal.
+     - To test, stop the container or host briefly at a quiet time: existing peers keep working, but new logins fail while control is down.
+     - It checks reachability only, not enrolment or DERP relaying. Check those from a client with `tailscale status` and `tailscale netcheck`.
 
 9. **Try a restore** before you need one (ideally on a scratch VM): `./restore.sh backups/headscale-<timestamp>.tar.gz`.
 
