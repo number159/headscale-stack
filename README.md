@@ -6,7 +6,7 @@ Self-hosted Tailscale control server: Headscale with built-in Let's Encrypt HTTP
 
 ## Files
 
-`docker-compose.yml`, `config/` (`config.yaml`, `acl.hujson`), `data/` (created at runtime: DB and private keys), `backup.sh`, `restore.sh`, `headscale-backup.cron`, `test.sh` (runs backup and restore against stub `docker`/`rclone`, ~10 s, no containers needed). Design rationale is in the design doc above.
+`docker-compose.yml`, `config/` (`config.yaml.example`, `acl.hujson`; the real `config.yaml` is git-ignored because it holds the OIDC secret), `data/` (created at runtime: DB and private keys), `backup.sh`, `restore.sh`, `headscale-backup.cron`, `test.sh` (runs backup and restore against stub `docker`/`rclone`, ~10 s, no containers needed). Design rationale is in the design doc above.
 
 ## Deploy
 
@@ -18,7 +18,7 @@ Needs a Linux VM with a public IP, Docker with the compose plugin, a DNS name, a
 
 3. **Register an OIDC client** at your identity provider with redirect URI `https://<domain>/oidc/callback`. Note the issuer URL, client ID and secret.
 
-4. **Fill in every placeholder** (`grep -rn 'CHANGEME\|example.com' config`):
+4. **Create and fill in the config.** `cp config/config.yaml.example config/config.yaml` (git-ignored: it holds the OIDC secret), then replace every placeholder (`grep -rn 'CHANGEME\|example.com' config/config.yaml config/acl.hujson`):
    - `config/config.yaml`: `server_url` and `tls_letsencrypt_hostname` (same domain), `oidc.issuer`, `oidc.client_id`, `oidc.client_secret`, `oidc.allowed_domains` (or `allowed_users` / `allowed_groups`)
    - `config/config.yaml`, optional: uncomment `derp.server.ipv4` / `ipv6` with the VM's public addresses
    - `config/acl.hujson`: your admin email(s) in `group:admin`, exactly as the IdP returns them
