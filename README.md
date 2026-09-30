@@ -72,6 +72,39 @@ The LXC does not need `/dev/net/tun`: the headscale server does not create a VPN
 
 Proxmox backups (`vzdump`) of the LXC also capture `data/` and `config/`, but they are not application-consistent for SQLite: keep `backup.sh` as the primary backup.
 
+## Managing users and devices
+
+Headscale has no web UI (`/` is a blank page on purpose; `/health`, `/windows` and `/apple` exist). Everything is done with the `headscale` CLI inside the container, from a shell on the host, in the project directory:
+
+```
+cd /opt/headscale
+hs="docker compose exec -T headscale headscale"      # shorthand for the examples below
+```
+
+A "user" is an owner of devices (there are no passwords or web accounts). A "node" is a device.
+
+| Task | Command |
+|---|---|
+| List devices | `$hs nodes list` |
+| Rename a device | `$hs nodes rename -i <id> <new-name>` |
+| Force re-authentication | `$hs nodes expire -i <id>` |
+| Never expire a device's key (servers) | `$hs nodes expire -i <id> --disable` |
+| Remove a device | `$hs nodes delete -i <id>` |
+| Approve subnet routes / exit node | `$hs nodes approve-routes -i <id> -r 10.0.0.0/24` (empty `-r ""` removes all) |
+| Show advertised routes | `$hs nodes list-routes` |
+| Tag a device (ACL use) | `$hs nodes tag -i <id> -t tag:server` (tags must start with `tag:`; a tagged device is owned by its tags, not by a user) |
+| List / create / rename users | `$hs users list`, `$hs users create <name>`, `$hs users rename -i <id> --new-name <name>` |
+| Delete a user (remove their devices first) | `$hs users destroy -i <id>` |
+| Create a preauth key | `$hs preauthkeys create -u <user-id> --expiration 1h` (one machine; add `--reusable` for several) |
+| List / expire / delete keys | `$hs preauthkeys list`, `$hs preauthkeys expire --id <n>`, `$hs preauthkeys delete --id <n>` |
+| Approve a device that ran `tailscale up` without a key | `$hs auth register --auth-id <id-from-the-url> --user <name>` |
+
+Add `-o json` to most commands for scripting. `$hs <command> --help` shows the flags for this version.
+
+On any machine: `tailscale status` (peers), `tailscale ping <name>` (direct vs relay), `tailscale netcheck` (DERP), `tailscale down` (disconnect), `tailscale logout` (leave the network).
+
+Remote CLI (running `headscale` from another PC with an API key) needs the gRPC port exposed, which this stack does not do. Add it only if needed.
+
 ## Operations
 
 - **Add a machine:** create a preauth key and run `tailscale up` with it (step 6).
