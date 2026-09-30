@@ -55,6 +55,20 @@ Needs a Linux VM with a public IP, Docker with the compose plugin, a DNS name, a
 
 9. **Try a restore** before you need one (ideally on a scratch VM): `./restore.sh backups/headscale-<timestamp>.tar.gz`.
 
+## Running in a Proxmox LXC
+
+Untested; the steps below are the usual setup for Docker in an LXC.
+
+1. Create a Debian 12 (or Ubuntu 22.04+) LXC: **unprivileged**, 1 vCPU, 1 GB RAM, 10-20 GB disk, bridged network with its own IP (static, or a DHCP reservation).
+2. In the container's Options -> Features enable **nesting** and **keyctl** (or `features: nesting=1,keyctl=1` in `/etc/pve/lxc/<id>.conf`), then restart it. Docker will not start without nesting.
+3. Inside the LXC install Docker and the compose plugin, then continue with the deploy steps above. `docker compose`, cron and `rclone` all run inside the LXC.
+4. Make it reachable: forward TCP 80, TCP 443 and UDP 3478 from your router (or the Proxmox host's firewall) to the LXC's IP. Port 80 must really reach it for the Let's Encrypt HTTP-01 challenge.
+5. If `docker run` fails on overlay or storage errors (seen with LXC root disks on ZFS), set Docker's storage driver to `fuse-overlayfs` or use a VM instead.
+
+The LXC does not need `/dev/net/tun`: the headscale server does not create a VPN interface. Only Tailscale **clients** running in containers do (pass through `/dev/net/tun` or use userspace mode).
+
+Proxmox backups (`vzdump`) of the LXC also capture `data/` and `config/`, but they are not application-consistent for SQLite: keep `backup.sh` as the primary backup.
+
 ## Operations
 
 - **Add a user or machine:** log in through OIDC, or use a preauth key (step 6).
