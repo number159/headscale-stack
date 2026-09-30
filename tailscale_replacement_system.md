@@ -63,9 +63,9 @@ The runnable draft (compose file, minimal Headscale config, starter ACL, backup/
 Design choices in the draft:
 - Docker Compose with a single `headscale` container instead of the [official packages](https://headscale.net/stable/setup/install/official/). Either works; the VM table above still applies.
 - Headscale terminates TLS itself (built-in Let's Encrypt, HTTP-01 on TCP 80), so there is no reverse proxy. DERP shares the HTTPS port. Upstream documents reverse proxies as the usual setup, so verify this on the VM.
-- The config file lists only keys that differ from Headscale's defaults; the OIDC client secret lives in it (mode 600, backed up with `config/`).
+- The config file lists only keys that differ from Headscale's defaults.
 - Embedded DERP on, Tailscale's public DERP map kept as fallback.
-- Starter ACL is default deny: `group:admin` reaches everything; other members reach only their own devices.
+- ACL is allow-all between enrolled machines (simple start; tighten with groups or tags later).
 - Monitoring is two cron lines (alert on backup failure, alert if no backup in 26 h). An external uptime monitor on `https://<domain>/health` is still needed: a dead VM cannot alert on itself.
 
 ## Decisions
@@ -73,11 +73,10 @@ Design choices in the draft:
 Settled:
 - Run on a new VM the user creates.
 - Enable the embedded DERP and keep the public DERP map as a fallback.
-- Use OIDC login plus a file-based ACL.
+- No OIDC for now: machines join with preauth keys. The ACL is a file, allow-all.
 
 Still open:
 - VM provider/location and the DNS name.
-- Identity provider, and which users or domain may log in.
 - Number of clients and expected traffic, especially large transfers between networks that might require relaying.
 - Whether to drop the public DERP map (makes the VM the single relay).
 - Whether Tailscale SSH and periodic approval are needed.

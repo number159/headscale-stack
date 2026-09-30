@@ -41,13 +41,3 @@ dns:
   override_local_dns: true
   nameservers:
     global: [1.1.1.1, 1.0.0.1]
-
-oidc:
-  only_start_if_oidc_is_available: true
-  issuer: https://accounts.google.com       # CHANGEME: your IdP issuer URL
-  client_id: CHANGEME
-  client_secret: CHANGEME
-  allowed_domains: [example.com]            # CHANGEME: or allowed_users / allowed_groups
-  pkce:
-    enabled: true
-    method: S256

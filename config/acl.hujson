@@ -1,12 +1,7 @@
 {
-  // CHANGEME: admin emails as they appear in the IdP
-  "groups": {
-    "group:admin": ["you@example.com"],
-  },
+  // Simple: every machine can reach every other machine.
+  // Tighten later, e.g. with groups/tags: https://headscale.net/stable/ref/acls/
   "acls": [
-    // admins reach everything
-    {"action": "accept", "src": ["group:admin"], "dst": ["*:*"]},
-    // every member reaches only their own devices
-    {"action": "accept", "src": ["autogroup:member"], "dst": ["autogroup:self:*"]},
+    {"action": "accept", "src": ["*"], "dst": ["*:*"]},
   ],
 }

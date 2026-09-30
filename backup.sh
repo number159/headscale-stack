@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Backs up data/ (SQLite + private keys) and config/ (incl. OIDC secret) to ./backups (keeps 14),
+# Backs up data/ (SQLite + private keys) and config/ to ./backups (keeps 14),
 # then copies the archive offsite with rclone if OFFSITE is set.
 # Stops headscale for a second or two so the SQLite file is consistent.
 # ponytail: brief stop instead of sqlite online backup; clients reconnect on their own.
 #
 # OFFSITE=<rclone remote:path>  e.g. b2:my-bucket/headscale  (set here or in the cron env)
-# The archive holds private keys and the OIDC secret: use an encrypted remote (rclone crypt).
+# The archive holds the server's private keys: use an encrypted remote (rclone crypt).
 set -euo pipefail
 cd "$(dirname "$0")"
 
