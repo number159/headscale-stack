@@ -1,0 +1,14 @@
+# Install on the VM: sudo cp headscale-backup.cron /etc/cron.d/headscale-backup
+# (files in /etc/cron.d need the user field, must be owned by root, and not be writable by others)
+# Edit OFFSITE, ALERT_URL and the paths below if the project is not in /opt/headscale.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+OFFSITE=
+# ntfy.sh topic URL or any webhook that accepts a plain-text POST body
+ALERT_URL=
+
+# daily 03:00 backup (+ offsite upload if OFFSITE is set); alert if it fails
+0 3 * * * root /opt/headscale/backup.sh >>/var/log/headscale-backup.log 2>&1 || curl -fsS -d "headscale backup failed, see /var/log/headscale-backup.log" "$ALERT_URL"
+
+# daily 09:00: alert if no backup in the last 26h (catches cron not running)
+0 9 * * * root find /opt/headscale/backups -name 'headscale-*.tar.gz' -mmin -1560 | grep -q . || curl -fsS -d "headscale: no backup in 26h" "$ALERT_URL"

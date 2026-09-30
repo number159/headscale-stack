@@ -1,0 +1,12 @@
+services:
+  headscale:
+    image: headscale/headscale:v0.29.4
+    command: serve
+    restart: unless-stopped
+    ports:
+      - "80:80"           # Let's Encrypt HTTP-01
+      - "443:443"         # control plane + DERP
+      - "3478:3478/udp"   # STUN
+    volumes:
+      - ./config:/etc/headscale
+      - ./data:/var/lib/headscale
