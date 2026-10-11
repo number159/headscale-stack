@@ -10,3 +10,10 @@ services:
     volumes:
       - ./config:/etc/headscale
       - ./data:/var/lib/headscale
+    # Cap the container log: headscale logs every HTTP request at INFO, and one misbehaving client can grow
+    # it by gigabytes a day (seen in production: 14 GB in ~10 days on a 20 GB disk).
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
